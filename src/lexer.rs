@@ -1,6 +1,8 @@
 use crate::token::Token;
 use std::str::Chars;
 
+#[derive(Debug)]
+#[allow(dead_code)]
 pub struct Lexer<'a> {
     input: &'a str,
     chars: Chars<'a>,
@@ -13,6 +15,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
+    #[allow(dead_code)]
     fn new(input: &'a str) -> Lexer<'a> {
         let mut l = Self {
             ch: None,
@@ -31,7 +34,10 @@ impl<'a> Lexer<'a> {
         self.ch
     }
 
+    #[allow(dead_code)]
     fn next_token(&mut self) -> Token {
+        self.skip_whitespace();
+
         let token = match self.ch {
             Some('=') => Token::Assign,
             Some(';') => Token::Semicolon,
@@ -41,13 +47,65 @@ impl<'a> Lexer<'a> {
             Some('}') => Token::Rbrace,
             Some('+') => Token::Plus,
             Some(',') => Token::Comma,
-            Some(_) => Token::Illegal,
+            Some(ch) => {
+                if self.is_letter(ch) {
+                    let ident = self.read_identifier();
+                    return Token::lookup_ident(&ident)
+                } else if self.is_digit(ch) {
+                    return Token::Int(self.read_number())
+                } else {
+                    Token::Illegal
+                }
+            },
             None => Token::Eof,
         };
 
         self.read_char();
 
         token
+    }
+
+    fn read_identifier(&mut self) -> String {
+        let mut identifier = String::new();
+
+        while let Some(ch) = self.ch  {
+            if !self.is_letter(ch) { break }
+
+            identifier.push(ch);
+            self.read_char();
+        }
+
+        identifier
+    }
+
+    fn read_number(&mut self) -> String { 
+        let mut number = String::new();
+         
+        while let Some(ch) = self.ch  {
+            if !self.is_digit(ch) { break }
+
+            number.push(ch);
+            self.read_char();
+        }
+
+        number
+    }
+
+    fn is_letter(&self, ch: char) -> bool {
+        ('a'..='z').contains(&ch) || ('A'..='Z').contains(&ch) || ch == '_'
+    }
+    
+    fn skip_whitespace(&mut self) {
+        while let Some(ch) = self.ch {
+            match ch {
+                ' ' | '\t' | '\r' | '\n'  => { self.read_char(); },
+                _ => break,
+            };
+        };
+    }
+    
+    fn is_digit(&self, ch: char) -> bool { 
+        ('0'..='9').contains(&ch)
     }
 }
 
@@ -89,7 +147,7 @@ mod test {
             };
 
             let result = add(five, ten);
-        "#;
+        "#.trim();
 
         let mut lexer = Lexer::new(input);
 
