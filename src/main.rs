@@ -1,3 +1,5 @@
+use interpreter::repl;
+
 fn main() {
-    println!("Hello, world!");
+    repl::start();
 }

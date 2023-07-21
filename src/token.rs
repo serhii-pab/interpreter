@@ -10,6 +10,12 @@ pub enum Token {
     // Operators
     Assign,
     Plus,
+    Minus,
+    Bang,
+    Asterisk,
+    Slash,
+    Eq,
+    NotEq,
 
     // Delimiters
     Comma,
@@ -18,10 +24,17 @@ pub enum Token {
     Rparen,
     Lbrace,
     Rbrace,
+    LessThen,
+    GreaterThen,
 
     // Keywords
     Function,
     Let,
+    True,
+    False,
+    If,
+    Else,
+    Return,
 }
 
 impl Token {
@@ -29,6 +42,11 @@ impl Token {
         match ident {
             "fn" => Token::Function,
             "let" => Token::Let,
+            "return" => Token::Return,
+            "else" => Token::Else,
+            "if" => Token::If,
+            "true" => Token::True,
+            "false" => Token::False,
             _ => Token::Ident(ident.into()),
         }
     }
