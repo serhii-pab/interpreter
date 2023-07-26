@@ -10,6 +10,8 @@ pub struct Parser<'a> {
 
     cur_token: Token,
     peek_token: Token,
+
+    errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -18,7 +20,17 @@ impl<'a> Parser<'a> {
             cur_token: lexer.next_token(),
             peek_token: lexer.next_token(),
             lexer,
+            errors: Vec::new(),
         }
+    }
+
+    fn errors(&self) -> &Vec<String> {
+        &self.errors
+    }
+
+    fn peek_error(&mut self, token: Token) {
+        let error = format!("expected next token to be {:?}, got {:?} instead", &token, &self.peek_token);
+        self.errors.push(error);
     }
 
     fn next_token(&mut self) {
@@ -52,7 +64,7 @@ impl<'a> Parser<'a> {
             Token::Ident(ident) => {
                 self.next_token();
 
-                match self.peek_token { 
+                match self.peek_token.clone() { 
                     Token::Assign => {
                         let identifier = Identifier { token: self.cur_token.clone(), value: ident };
 
@@ -69,10 +81,16 @@ impl<'a> Parser<'a> {
                             }),
                         }));
                     },
-                    _ => return None,
+                    token => return {
+                        self.peek_error(token);
+                        None
+                    },
                 }
             },
-            _ => return None,
+            token => {
+                self.peek_error(token);
+                None
+            },
         }
     }
 }
